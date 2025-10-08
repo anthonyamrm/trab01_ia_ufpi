@@ -2,20 +2,17 @@ import time
 import heapq
 from collections import deque
 
-# O estado objetivo é fixo no Jogo do 8
-GOAL_STATE = (1, 2, 3, 4, 5, 6, 7, 8, 0)
-# A tupla de movimentos (dr, dc, descrição)
+
+ESTADO_FINAL = (1, 2, 3, 4, 5, 6, 7, 8, 0)
+
+#A tupla de movimentos (dr, dc, descrição)
 MOVES = ((-1, 0, 'CIMA'), (1, 0, 'BAIXO'), (0, -1, 'ESQUERDA'), (0, 1, 'DIREITA'))
 
 # Contador global para desempate na heap
-insertion_counter = 0
-
-# -----------------------------------------------------------
-# 1. CLASSE NODE (Nó)
-# -----------------------------------------------------------
+cout = 0
 
 class Node:
-    """Representa um estado do tabuleiro e o caminho para chegar a ele."""
+    #Representa um estado do tabuleiro e o caminho para chegar a ele.
     def __init__(self, state, parent=None, action=None, cost=0):
         self.state = state
         self.parent = parent
@@ -31,12 +28,8 @@ class Node:
     def __repr__(self):
         return f"Node(state={self.state}, cost={self.cost})"
 
-# -----------------------------------------------------------
-# 2. FUNÇÕES AUXILIARES E HEURÍSTICA
-# -----------------------------------------------------------
-
 def get_successors(node):
-    """Gera todos os estados sucessores válidos a partir do estado atual."""
+    #Gera todos os estados sucessores válidos a partir do estado atual.
     state_list = list(node.state)
     zero_index = state_list.index(0)
     row, col = divmod(zero_index, 3)
@@ -59,7 +52,7 @@ def get_successors(node):
     return successors
 
 def reconstruct_path(node, search_type):
-    """Reconstrói e imprime o caminho da solução passo a passo."""
+    #Reconstrói e imprime o caminho da solução passo a passo.
     path = []
     current = node
     while current.parent is not None:
@@ -74,7 +67,7 @@ def reconstruct_path(node, search_type):
         action_str = f"AÇÃO: {action}" if action else "INÍCIO"
         print(f"\nPasso {i}: ({action_str})")
 
-        # Formata o tabuleiro para impressão (substitui 0 por espaço)
+        # Formata o tabuleiro para impressão
         board = [str(x) if x != 0 else ' ' for x in state]
 
         # Imprime o tabuleiro 3x3
@@ -84,8 +77,8 @@ def reconstruct_path(node, search_type):
 
     return path
 
-def heuristic(state):
-    """Calcula a Distância de Manhattan (h2) para o estado."""
+def heuristica(state):
+    #Calcula a Distância de Manhattan (h2) para o estado.
     distance = 0
     goal_positions = {
         1: (0, 0), 2: (0, 1), 3: (0, 2),
@@ -102,15 +95,12 @@ def heuristic(state):
 
     return distance
 
-# -----------------------------------------------------------
-# 3. FUNÇÕES DE BUSCA (CEGAS)
-# -----------------------------------------------------------
 
-def solve_8_puzzle_blind(initial_state, search_type='bfs', max_depth=None):
+def resolver_jogo_do_8(initial_state, search_type='bfs', max_depth=None):
     """Executa BFS ou DFS."""
     start_time = time.time()
 
-    if initial_state == GOAL_STATE:
+    if initial_state == ESTADO_FINAL:
         return Node(initial_state), 1, 0, 0.0
 
     if search_type == 'bfs':
@@ -129,7 +119,7 @@ def solve_8_puzzle_blind(initial_state, search_type='bfs', max_depth=None):
         current_node = pop_func()
 
         # Verifica objetivo ao remover da fronteira (bom para DFS também)
-        if current_node.state == GOAL_STATE:
+        if current_node.state == ESTADO_FINAL:
             end_time = time.time()
             return current_node, nodes_generated, len(frontier), end_time - start_time
 
@@ -145,19 +135,15 @@ def solve_8_puzzle_blind(initial_state, search_type='bfs', max_depth=None):
     end_time = time.time()
     return None, nodes_generated, 0, end_time - start_time
 
-# -----------------------------------------------------------
-# 4. FUNÇÕES DE BUSCA (HEURÍSTICAS)
-# -----------------------------------------------------------
-
-def greedy_search(initial_state):
+def gulosa(initial_state):
     """Busca Gulosa: utiliza f(n) = h(n)."""
-    global insertion_counter
+    global cout
     start_time = time.time()
 
-    insertion_counter = 0
+    cout = 0
 
     # Fronteira: Fila de Prioridade (h_cost, counter, node)
-    frontier = [(heuristic(initial_state), insertion_counter, Node(initial_state, cost=0))]
+    frontier = [(heuristica(initial_state), cout, Node(initial_state, cost=0))]
     visited_expanded = set()   # estados já removidos/expandidos
     in_frontier = {initial_state}  # para evitar inserções duplicadas (simples)
     nodes_generated = 1
@@ -172,7 +158,7 @@ def greedy_search(initial_state):
         in_frontier.discard(current_node.state)
         visited_expanded.add(current_node.state)
 
-        if current_node.state == GOAL_STATE:
+        if current_node.state == ESTADO_FINAL:
             end_time = time.time()
             return current_node, nodes_generated, len(frontier), end_time - start_time
 
@@ -180,9 +166,9 @@ def greedy_search(initial_state):
             if successor.state in visited_expanded:
                 continue
             if successor.state not in in_frontier:
-                h_cost = heuristic(successor.state)
-                insertion_counter += 1
-                heapq.heappush(frontier, (h_cost, insertion_counter, successor))
+                h_cost = heuristica(successor.state)
+                cout += 1
+                heapq.heappush(frontier, (h_cost, cout, successor))
                 in_frontier.add(successor.state)
                 nodes_generated += 1
 
@@ -192,16 +178,16 @@ def greedy_search(initial_state):
 
 def a_star_search(initial_state):
     """Busca A*: utiliza f(n) = g(n) + h(n)."""
-    global insertion_counter
+    global cout
     start_time = time.time()
 
-    insertion_counter = 0
+    cout = 0
 
     start_node = Node(initial_state, cost=0)
-    start_h = heuristic(initial_state)
+    start_h = heuristica(initial_state)
     start_f = start_node.cost + start_h
 
-    frontier = [(start_f, insertion_counter, start_node)]
+    frontier = [(start_f, cout, start_node)]
     g_scores = {initial_state: 0}
     nodes_generated = 1
     visited_expanded = set()
@@ -219,7 +205,7 @@ def a_star_search(initial_state):
 
         visited_expanded.add(current_node.state)
 
-        if current_node.state == GOAL_STATE:
+        if current_node.state == ESTADO_FINAL:
             end_time = time.time()
             return current_node, nodes_generated, len(frontier), end_time - start_time
 
@@ -233,27 +219,24 @@ def a_star_search(initial_state):
             # Caso novo ou melhor caminho:
             g_scores[successor.state] = new_g_cost
             successor.cost = new_g_cost  # garantir consistência do cost no nó
-            new_h = heuristic(successor.state)
+            new_h = heuristica(successor.state)
             new_f = new_g_cost + new_h
 
-            insertion_counter += 1
-            heapq.heappush(frontier, (new_f, insertion_counter, successor))
+            cout += 1
+            heapq.heappush(frontier, (new_f, cout, successor))
             nodes_generated += 1
 
     end_time = time.time()
     return None, nodes_generated, 0, end_time - start_time
 
-# -----------------------------------------------------------
-# 5. EXECUÇÃO PRINCIPAL
-# -----------------------------------------------------------
 
 if __name__ == "__main__":
     # ESTADO DE TESTE INTERMEDIÁRIO (Custo: 16)
     INITIAL_STATE = (1, 3, 6, 5, 2, 0, 4, 7, 8)
 
-    # --- 1. BFS EXECUÇÃO ---
+    # 1. BFS EXECUÇÃO
     print("=" * 40); print("--- EXECUTANDO 1. BFS (Cega) ---"); print("=" * 40)
-    bfs_solution, bfs_nodes, bfs_frontier_len, bfs_time = solve_8_puzzle_blind(INITIAL_STATE, search_type='bfs')
+    bfs_solution, bfs_nodes, bfs_frontier_len, bfs_time = resolver_jogo_do_8(INITIAL_STATE, search_type='bfs')
     if bfs_solution:
         reconstruct_path(bfs_solution, 'BFS')
         print(f"\n--- MÉTRICAS BFS --- Nós Gerados: {bfs_nodes}, Tempo: {bfs_time:.4f}s, Custo Caminho: {bfs_solution.cost}")
@@ -261,9 +244,9 @@ if __name__ == "__main__":
         print("BFS: Solução não encontrada (pode ser por limite de memória/tempo).")
         print(f"Nós Gerados: {bfs_nodes}, Tempo: {bfs_time:.4f}s")
 
-    # --- 2. DFS EXECUÇÃO ---
+    # 2. DFS EXECUÇÃO 
     print("\n" + "=" * 40 + "\n"); print("=" * 40); print("--- EXECUTANDO 2. DFS (Cega) ---"); print("  (Max Depth ajustado para 50)"); print("=" * 40)
-    dfs_solution, dfs_nodes, dfs_frontier_len, dfs_time = solve_8_puzzle_blind(INITIAL_STATE, search_type='dfs', max_depth=50)
+    dfs_solution, dfs_nodes, dfs_frontier_len, dfs_time = resolver_jogo_do_8(INITIAL_STATE, search_type='dfs', max_depth=50)
     if dfs_solution:
         reconstruct_path(dfs_solution, 'DFS')
         print(f"\n--- MÉTRICAS DFS --- Nós Gerados: {dfs_nodes}, Tempo: {dfs_time:.4f}s, Custo Caminho: {dfs_solution.cost}")
@@ -271,9 +254,9 @@ if __name__ == "__main__":
         print("DFS: Solução não encontrada (Limite de profundidade atingido ou ineficiência).")
         print(f"Nós Gerados: {dfs_nodes}, Tempo: {dfs_time:.4f}s")
 
-    # --- 3. GULOSA EXECUÇÃO ---
+    # 3. GULOSA EXECUÇÃO
     print("\n" + "=" * 40 + "\n"); print("=" * 40); print("--- EXECUTANDO 3. GULOSA (h(n)) ---"); print("=" * 40)
-    greedy_solution, greedy_nodes, greedy_frontier_len, greedy_time = greedy_search(INITIAL_STATE)
+    greedy_solution, greedy_nodes, greedy_frontier_len, greedy_time = gulosa(INITIAL_STATE)
     if greedy_solution:
         reconstruct_path(greedy_solution, 'GULOSA')
         print(f"\n--- MÉTRICAS GULOSA --- Nós Gerados: {greedy_nodes}, Tempo: {greedy_time:.4f}s, Custo Caminho: {greedy_solution.cost}")
@@ -281,7 +264,7 @@ if __name__ == "__main__":
         print("GULOSA: Solução não encontrada (Gulosa não é completa).")
         print(f"Nós Gerados: {greedy_nodes}, Tempo: {greedy_time:.4f}s")
 
-    # --- 4. A* EXECUÇÃO ---
+    # 4. A* EXECUÇÃO
     print("\n" + "=" * 40 + "\n"); print("=" * 40); print("--- EXECUTANDO 4. A* (f(n) = g(n) + h(n)) ---"); print("=" * 40)
     astar_solution, astar_nodes, astar_frontier_len, astar_time = a_star_search(INITIAL_STATE)
     if astar_solution:
