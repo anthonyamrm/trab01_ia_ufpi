@@ -28,7 +28,7 @@ def run_searches():
     print("=" * 40)
     print("--- EXECUTANDO 1. BFS (Cega) ---")
     print("=" * 40)
-    bfs_solution, bfs_nodes, _, bfs_time = solve_8_puzzle_blind(initial_state, 'bfs')
+    bfs_solution, bfs_nodes, _, bfs_time = resolver_jogo_do_8(initial_state, 'bfs')
     if bfs_solution:
         reconstruct_path(bfs_solution, 'BFS')
         messagebox.showinfo("BFS", f"Solução encontrada!\nNós: {bfs_nodes}\nTempo: {bfs_time:.4f}s\nCusto: {bfs_solution.cost}")
@@ -39,7 +39,7 @@ def run_searches():
     print("\n" + "=" * 40)
     print("--- EXECUTANDO 2. DFS (Cega) ---")
     print("=" * 40)
-    dfs_solution, dfs_nodes, _, dfs_time = solve_8_puzzle_blind(initial_state, 'dfs', max_depth=50)
+    dfs_solution, dfs_nodes, _, dfs_time = resolver_jogo_do_8(initial_state, 'dfs', max_depth=50)
     if dfs_solution:
         reconstruct_path(dfs_solution, 'DFS')
         messagebox.showinfo("DFS", f"Solução encontrada!\nNós: {dfs_nodes}\nTempo: {dfs_time:.4f}s\nCusto: {dfs_solution.cost}")
@@ -50,7 +50,7 @@ def run_searches():
     print("\n" + "=" * 40)
     print("--- EXECUTANDO 3. GULOSA ---")
     print("=" * 40)
-    greedy_solution, greedy_nodes, _, greedy_time = greedy_search(initial_state)
+    greedy_solution, greedy_nodes, _, greedy_time = gulosa(initial_state)
     if greedy_solution:
         reconstruct_path(greedy_solution, 'GULOSA')
         messagebox.showinfo("Gulosa", f"Solução encontrada!\nNós: {greedy_nodes}\nTempo: {greedy_time:.4f}s\nCusto: {greedy_solution.cost}")
