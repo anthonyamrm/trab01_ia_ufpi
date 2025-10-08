@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 from jogodo8 import (
-    solve_8_puzzle_blind, greedy_search, a_star_search,
+    resolver_jogo_do_8, gulosa, a_star_search,
     reconstruct_path
 )
 
