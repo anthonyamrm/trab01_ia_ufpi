@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
 
-# Importa seu código (salve o código principal como eight_puzzle.py)
 from jogodo8 import (
     solve_8_puzzle_blind, greedy_search, a_star_search,
     reconstruct_path
@@ -10,10 +9,9 @@ from jogodo8 import (
 def run_searches():
     user_input = entry.get().strip()
     try:
-        # Aceita entrada com vírgulas ou espaços
         numbers = tuple(map(int, user_input.replace(",", " ").split()))
     except ValueError:
-        messagebox.showerror("Erro", "Entrada inválida! Use apenas números de 0 a 8.")
+        messagebox.showerror("Erro", "Entrada inválida, use apenas números de 0 a 8.")
         return
 
     if set(numbers) != set(range(9)):
@@ -70,11 +68,6 @@ def run_searches():
     else:
         messagebox.showinfo("A*", f"Solução não encontrada.\nNós: {astar_nodes}\nTempo: {astar_time:.4f}s")
 
-
-# -----------------------------------------------------------
-# GUI simples
-# -----------------------------------------------------------
-
 root = tk.Tk()
 root.title("Jogo do 8 — Inserir Estado Inicial")
 
@@ -82,7 +75,7 @@ tk.Label(root, text="Digite o estado inicial (números 0 a 8):").pack(pady=8)
 
 entry = tk.Entry(root, width=30, font=("Arial", 12))
 entry.pack(pady=5)
-entry.insert(0, "1 3 6 5 2 0 4 7 8")  # exemplo padrão
+entry.insert(0, "1 3 6 5 2 0 4 7 8") 
 
 tk.Button(root, text="Executar Buscas", command=run_searches, bg="#4CAF50", fg="white", font=("Arial", 11, "bold")).pack(pady=10)
 
